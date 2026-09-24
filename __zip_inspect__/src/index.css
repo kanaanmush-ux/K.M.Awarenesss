@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-baloo: 'Baloo 2', sans-serif;
+  --font-elite: 'Special Elite', cursive;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-sans: 'Source Sans 3', sans-serif;
+  --color-teal-app: #1aacab;
+  --color-orange-app: #e07838;
+  --color-cream-app: #f5e6c8;
+  --color-void: #090909;
+  --color-surface: #111111;
+  --color-surface2: #1a1a1a;
+  --color-border: #2a2a2a;
+  --color-red-alert: #dc2626;
+  --color-yellow-tape: #f5c518;
+  --color-text: #e2e2e2;
+  --color-muted: #666666;
+}
+
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }

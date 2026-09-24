@@ -1,0 +1,10 @@
+{
+  "description": "Enables users to securely reset their passwords through a simple, user-friendly interface, enhancing account recovery and security.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
