@@ -6,9 +6,41 @@ create table if not exists public.profiles (
   handle text,
   bio text not null default '',
   avatar_url text,
+  interests text[] not null default '{}'::text[]
+    check (interests <@ array['GOVERNMENT', 'PARANORMAL', 'TECHNOLOGY', 'HISTORY', 'SPACE']::text[]),
+  notification_breaking boolean not null default true,
+  notification_comments boolean not null default true,
+  notification_weekly boolean not null default false,
+  onboarding_completed boolean not null default false,
   created_at timestamptz not null default pg_catalog.now(),
-  updated_at timestamptz not null default pg_catalog.now()
+  updated_at timestamptz not null default pg_catalog.now(),
+  constraint profiles_interests_valid check (
+    interests <@ array['GOVERNMENT', 'PARANORMAL', 'TECHNOLOGY', 'HISTORY', 'SPACE']::text[]
+  )
 );
+
+alter table public.profiles
+  add column if not exists interests text[] not null default '{}'::text[],
+  add column if not exists notification_breaking boolean not null default true,
+  add column if not exists notification_comments boolean not null default true,
+  add column if not exists notification_weekly boolean not null default false,
+  add column if not exists onboarding_completed boolean not null default false;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_catalog.pg_constraint
+    where conname = 'profiles_interests_valid'
+      and conrelid = 'public.profiles'::regclass
+  ) then
+    alter table public.profiles
+      add constraint profiles_interests_valid check (
+        interests <@ array['GOVERNMENT', 'PARANORMAL', 'TECHNOLOGY', 'HISTORY', 'SPACE']::text[]
+      );
+  end if;
+end;
+$$;
 
 create unique index if not exists profiles_handle_lower_unique
   on public.profiles (pg_catalog.lower(handle))
