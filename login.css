@@ -157,6 +157,8 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.8); }
 .submit:hover { filter: brightness(0.96); }
 .submit:active { transform: scale(0.98); }
 .submit:disabled { opacity: 0.7; cursor: wait; }
+.auth-message { margin: -14px 0 0; color: var(--cream); font-size: 13px; font-weight: 700; text-align: center; }
+.auth-message:empty { display: none; }
 
 .back-link {
   display: block;

@@ -1,3 +1,10 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+);
+
 const views = {
   'sign-in': document.querySelector('#sign-in-view'),
   forgot: document.querySelector('#forgot-password-view'),
@@ -9,6 +16,9 @@ const resetForm = document.querySelector('#forgot-password-form');
 const passwordInput = document.querySelector('#password');
 const passwordToggle = document.querySelector('.toggle-password');
 const submittedEmail = document.querySelector('#submitted-email');
+const loginMessage = document.querySelector('#login-message');
+const resetMessage = document.querySelector('#reset-message');
+const resetConfirmationMessage = document.querySelector('#reset-confirmation-message');
 
 const authShell = document.querySelector('#auth-shell');
 const appShell = document.querySelector('#app-shell');
@@ -555,27 +565,84 @@ function showAuthView(name) {
   history.replaceState(null, '', name === 'sign-in' ? '#sign-in' : `#${name}`);
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
   event.preventDefault();
   if (!loginForm.reportValidity()) return;
   const button = loginForm.querySelector('.submit');
   button.disabled = true;
   button.textContent = 'Signing In...';
+  loginMessage.textContent = '';
 
-  setTimeout(() => {
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: document.querySelector('#login-email').value.trim(),
+      password: passwordInput.value
+    });
+    if (error) throw error;
     authShell.classList.add('hidden');
     appShell.classList.remove('hidden');
     showView('home');
+  } catch (error) {
+    loginMessage.textContent = error.message || 'Unable to sign in. Please try again.';
+  } finally {
     button.disabled = false;
     button.textContent = 'Sign In';
-  }, 600);
+  }
+}
+
+async function sendPasswordReset(email) {
+  resetMessage.textContent = '';
+  resetConfirmationMessage.textContent = '';
+  const button = resetForm.querySelector('.submit');
+  button.disabled = true;
+  button.textContent = 'Sending...';
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}${window.location.pathname}#sign-in`
+    });
+    if (error) throw error;
+    submittedEmail.textContent = email;
+    showAuthView('confirmation');
+  } catch (error) {
+    resetMessage.textContent = error.message || 'Unable to send reset instructions. Please try again.';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Reset Password';
+  }
 }
 
 function handleReset(event) {
   event.preventDefault();
   if (!resetForm.reportValidity()) return;
-  submittedEmail.textContent = document.querySelector('#reset-email').value;
-  showAuthView('confirmation');
+  sendPasswordReset(document.querySelector('#reset-email').value.trim());
+}
+
+async function resendPasswordReset() {
+  const button = document.querySelector('#resend-button');
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  resetConfirmationMessage.textContent = '';
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(submittedEmail.textContent, {
+      redirectTo: `${window.location.origin}${window.location.pathname}#sign-in`
+    });
+    if (error) throw error;
+    resetConfirmationMessage.textContent = 'A new reset link has been sent.';
+  } catch (error) {
+    resetConfirmationMessage.textContent = error.message || 'Unable to resend the reset link.';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Resend Email';
+  }
+}
+
+async function restoreSession() {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error || !session) return;
+  authShell.classList.add('hidden');
+  appShell.classList.remove('hidden');
+  showView('home');
 }
 
 passwordToggle.addEventListener('click', () => {
@@ -594,7 +661,7 @@ document.querySelectorAll('[data-view]').forEach((link) => {
 
 loginForm.addEventListener('submit', handleLogin);
 resetForm.addEventListener('submit', handleReset);
-document.querySelector('#resend-button').addEventListener('click', () => showAuthView('forgot'));
+document.querySelector('#resend-button').addEventListener('click', resendPasswordReset);
 
 profileButton.addEventListener('click', () => showView('profile'));
 navButtons.forEach((button) => {
@@ -701,3 +768,4 @@ document.querySelector('#submit-form').addEventListener('submit', (event) => {
 
 showAuthView(location.hash === '#forgot' ? 'forgot' : 'sign-in');
 renderAll();
+restoreSession();
