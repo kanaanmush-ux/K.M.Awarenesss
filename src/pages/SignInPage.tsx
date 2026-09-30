@@ -37,7 +37,6 @@ export default function SignInPage({ onSignIn, onSignUp, onForgotPassword }: Pro
     fontWeight: 700,
     fontSize: '14px',
     letterSpacing: '0.08em',
-    textTransform: 'uppercase',
     width: '100%',
     border: 'none',
     outline: 'none',

@@ -792,12 +792,14 @@ function MainApp({ initialProfile, onSaveProfile }: { initialProfile: Profile; o
 }
 
 export default function App() {
+  const supabaseClient = supabase
   const [authScreen, setAuthScreen] = useState<AuthScreen>('loading')
   const [userId, setUserId] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile>({ name: '', handle: '', bio: '', avatar: '' })
 
   async function loadProfile(id: string, fallbackName = '') {
-    const { data, error } = await supabase
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { data, error } = await supabaseClient
       .from('profiles')
       .select('display_name, handle, bio, avatar_url, onboarding_completed')
       .eq('id', id)
@@ -806,7 +808,7 @@ export default function App() {
 
     let row = data
     if (!row) {
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabaseClient
         .from('profiles')
         .upsert({ id, display_name: fallbackName || null }, { onConflict: 'id' })
         .select('display_name, handle, bio, avatar_url, onboarding_completed')
@@ -828,7 +830,8 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    supabase.auth.getSession().then(async ({ data, error }) => {
+    if (!supabaseClient) return () => { active = false }
+    supabaseClient.auth.getSession().then(async ({ data, error }) => {
       if (!active) return
       if (error || !data.session) {
         setAuthScreen('signup')
@@ -844,7 +847,8 @@ export default function App() {
   }, [])
 
   async function handleSignUp(name: string, email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
       options: { data: { display_name: name } },
@@ -856,13 +860,15 @@ export default function App() {
   }
 
   async function handleSignIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password })
     if (error) throw error
     await loadProfile(data.user.id, data.user.user_metadata.display_name || '')
   }
 
   async function handlePasswordReset(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     })
     if (error) throw error
@@ -870,7 +876,8 @@ export default function App() {
 
   async function handleOnboardingComplete(preferences: OnboardingPreferences) {
     if (!userId) throw new Error('Your session has expired. Please sign in again.')
-    const { error } = await supabase.from('profiles').update({
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { error } = await supabaseClient.from('profiles').update({
       interests: preferences.interests,
       notification_breaking: preferences.notifications.breaking,
       notification_comments: preferences.notifications.comments,
@@ -883,13 +890,27 @@ export default function App() {
 
   async function handleProfileSave(nextProfile: Profile) {
     if (!userId) throw new Error('Your session has expired. Please sign in again.')
-    const { error } = await supabase.from('profiles').update({
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { error } = await supabaseClient.from('profiles').update({
       display_name: nextProfile.name.trim() || null,
       handle: nextProfile.handle.trim().replace(/^@/, '') || null,
       bio: nextProfile.bio,
     }).eq('id', userId)
     if (error) throw error
     setProfile(nextProfile)
+  }
+
+  if (!supabaseClient) {
+    return (
+      <main className="min-h-screen grid place-items-center bg-[#0c2f2f] px-6 text-[#f0f7f7]">
+        <section className="max-w-lg border border-[#1e5050] bg-[#0f3535] p-6">
+          <h1 className="mb-3 text-xl font-bold text-[#f5e6c8]">Deployment configuration needed</h1>
+          <p className="text-sm leading-6 text-[#b8d1d1]">
+            Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to this Vercel project’s Environment Variables, then redeploy.
+          </p>
+        </section>
+      </main>
+    )
   }
 
   if (authScreen === 'loading') {

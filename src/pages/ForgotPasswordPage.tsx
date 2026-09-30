@@ -27,7 +27,7 @@ export default function ForgotPasswordPage({ onBack, onReset }: Props) {
     backgroundColor: '#e07838', borderRadius: '14px',
     padding: '14px 16px 14px 48px', color: 'white',
     fontFamily: "'Baloo 2', sans-serif", fontWeight: 700,
-    fontSize: '14px', letterSpacing: '0.08em', textTransform: 'uppercase',
+    fontSize: '14px', letterSpacing: '0.08em',
     width: '100%', border: 'none', outline: 'none',
   }
 
