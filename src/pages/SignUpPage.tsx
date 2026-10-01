@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import type { Provider } from '@supabase/supabase-js'
 
 interface Props {
   onSignUp: (name: string, email: string, password: string) => Promise<boolean>
+  onSocialSignUp: (provider: Provider) => Promise<void>
   onSignIn: () => void
 }
 
-export default function SignUpPage({ onSignUp, onSignIn }: Props) {
+export default function SignUpPage({ onSignUp, onSocialSignUp, onSignIn }: Props) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -36,6 +38,18 @@ export default function SignUpPage({ onSignUp, onSignIn }: Props) {
       if (confirmationRequired) setMessage('Check your email to confirm your account, then sign in.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to create your account.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleSocialSignUp(provider: Provider) {
+    setMessage('')
+    setIsSubmitting(true)
+    try {
+      await onSocialSignUp(provider)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : `Unable to sign up with ${provider}.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -194,7 +208,7 @@ export default function SignUpPage({ onSignUp, onSignIn }: Props) {
           <p style={{ color: 'white', fontSize: '13px', fontWeight: 600, marginBottom: '16px', opacity: 0.9 }}>Or sign up with</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
             {/* Google */}
-            <button style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+            <button type="button" aria-label="Sign up with Google" onClick={() => void handleSocialSignUp('google')} disabled={isSubmitting} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
               <svg viewBox="0 0 24 24" width={22} height={22}>
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -203,19 +217,19 @@ export default function SignUpPage({ onSignUp, onSignIn }: Props) {
               </svg>
             </button>
             {/* X / Twitter */}
-            <button style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'black', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+            <button type="button" aria-label="Sign up with X" onClick={() => void handleSocialSignUp('twitter')} disabled={isSubmitting} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'black', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
               <svg viewBox="0 0 24 24" width={20} height={20} fill="white">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
               </svg>
             </button>
             {/* Facebook */}
-            <button style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1877F2', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+            <button type="button" aria-label="Sign up with Facebook" onClick={() => void handleSocialSignUp('facebook')} disabled={isSubmitting} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#1877F2', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
               <svg viewBox="0 0 24 24" width={22} height={22} fill="white">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
             </button>
             {/* Apple */}
-            <button style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'black', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+            <button type="button" aria-label="Sign up with Apple" onClick={() => void handleSocialSignUp('apple')} disabled={isSubmitting} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'black', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
               <svg viewBox="0 0 24 24" width={20} height={20} fill="white">
                 <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
               </svg>

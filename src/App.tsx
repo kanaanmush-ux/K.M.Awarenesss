@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import SignUpPage from './pages/SignUpPage'
 import SignInPage from './pages/SignInPage'
@@ -37,59 +38,6 @@ const CAT_ICONS: Record<Exclude<Category, 'ALL'>, string> = {
   GOVERNMENT: '🏛', PARANORMAL: '👁', TECHNOLOGY: '⚡', HISTORY: '📜', SPACE: '🌌',
 }
 const CATS: Category[] = ['ALL', 'GOVERNMENT', 'PARANORMAL', 'TECHNOLOGY', 'HISTORY', 'SPACE']
-
-const SEED: Theory[] = [
-  {
-    id: 1, title: 'The Phantom Time Hypothesis: 297 Years Were Fabricated',
-    excerpt: 'Heribert Illig proposed that Otto III, Pope Sylvester II, and Constantine VII conspired to place themselves at year 1000 AD, forging the entire Carolingian era.',
-    category: 'HISTORY', author: 'Agent_Vermeer', avatar: 'V', date: 'Sep 19, 2026',
-    image: 'https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=600&h=380&fit=crop&auto=format',
-    upvotes: 412, upvoted: false, saved: false, classified: true,
-    comments: [
-      { id: 1, author: 'Ghost_Archivist', avatar: 'G', text: 'Dendrochronology and eclipse records debunk this — but the fabrication logistics are still unsettling.', time: '2h ago' },
-      { id: 2, author: 'SilentObserver_7', avatar: 'S', text: 'The fact historians refuse to engage makes me more suspicious, not less.', time: '45m ago' },
-    ],
-  },
-  {
-    id: 2, title: "Operation Mockingbird: The CIA's Media Infiltration Still Active",
-    excerpt: 'Declassified in 1975, the program placed CIA assets in major news organizations. Multiple journalists claim it was never fully dismantled — it evolved.',
-    category: 'GOVERNMENT', author: 'DeepState_Watcher', avatar: 'D', date: 'Sep 21, 2026',
-    image: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&h=380&fit=crop&auto=format',
-    upvotes: 889, upvoted: false, saved: false, classified: true,
-    comments: [{ id: 1, author: 'NullRoute_X', avatar: 'N', text: 'The Church Committee barely scratched the surface. COINTELPRO ran parallel and we only know a fraction.', time: '5h ago' }],
-  },
-  {
-    id: 3, title: 'Tartaria: The Mud Flood and the Civilization We Overwrote',
-    excerpt: 'Thousands of pre-1900 buildings globally share a uniform architectural style inconsistent with their regional origins. Evidence suggests a global empire was buried under cities.',
-    category: 'HISTORY', author: 'MudFlood_Digest', avatar: 'M', date: 'Sep 20, 2026',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=380&fit=crop&auto=format',
-    upvotes: 657, upvoted: false, saved: false, classified: false,
-    comments: [{ id: 1, author: 'Liminal_Cartographer', avatar: 'L', text: "The 1893 Chicago World's Fair photos show buildings that should have taken decades. They appeared in months.", time: '1h ago' }],
-  },
-  {
-    id: 4, title: 'The Fermi Paradox Solution: We Are In Quarantine',
-    excerpt: "The Great Silence isn't absence — it's enforcement. The Zoo Hypothesis suggests civilizations above Kardashev III have placed Earth under strict non-contact protocol.",
-    category: 'SPACE', author: 'Exo_Warden', avatar: 'E', date: 'Sep 22, 2026',
-    image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&h=380&fit=crop&auto=format',
-    upvotes: 1203, upvoted: false, saved: false, classified: false, comments: [],
-  },
-  {
-    id: 5, title: 'The Strelka AI Incident: Chatbot Went Dark After 72 Hours',
-    excerpt: "In March 2024, a Russian AI lab's public model went offline after users reported it providing detailed geopolitical intelligence no public model should possess.",
-    category: 'TECHNOLOGY', author: 'ByteGhost_99', avatar: 'B', date: 'Sep 18, 2026',
-    image: 'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&h=380&fit=crop&auto=format',
-    upvotes: 344, upvoted: false, saved: false, classified: true,
-    comments: [{ id: 1, author: 'NullRoute_X', avatar: 'N', text: 'The Wayback Machine cached three conversations before the site went dark. Screenshots circulate in Signal groups.', time: '3h ago' }],
-  },
-  {
-    id: 6, title: 'Skinwalker Ranch EMF Readings and UAP Correlation',
-    excerpt: 'AARO data leaked by a Senate staffer shows magnetic field anomalies at Skinwalker Ranch correlate with 23 separate UAP events over 18 months.',
-    category: 'PARANORMAL', author: 'SilentObserver_7', avatar: 'S', date: 'Sep 22, 2026',
-    image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&h=380&fit=crop&auto=format',
-    upvotes: 521, upvoted: false, saved: false, classified: true,
-    comments: [{ id: 1, author: 'Exo_Warden', avatar: 'E', text: 'The frequency band in those readings matches exactly what SETI flagged as anomalous in 2022.', time: '6h ago' }],
-  },
-]
 
 // ─── comment thread ───────────────────────────────────────────────────────────
 
@@ -144,7 +92,7 @@ function TheoryCard({ theory, onUpvote, onSave, onAddComment }: {
     <article style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}
       className="overflow-hidden hover:border-[#1aacab60] transition-colors duration-300 rounded-sm">
       <div className="relative h-44 bg-[#0d3535] overflow-hidden">
-        <img src={theory.image} alt={theory.title} className="w-full h-full object-cover opacity-60 hover:opacity-75 transition-opacity duration-500" />
+        {theory.image && <img src={theory.image} alt={theory.title} className="w-full h-full object-cover opacity-60 hover:opacity-75 transition-opacity duration-500" />}
         <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${C.surface} 0%, transparent 60%)` }} />
         <div className="absolute top-3 left-3 flex gap-2 items-center">
           <span style={{ backgroundColor: color, fontFamily: "'Share Tech Mono',monospace" }}
@@ -197,7 +145,7 @@ function TheoryCard({ theory, onUpvote, onSave, onAddComment }: {
 // ─── submit page ─────────────────────────────────────────────────────────────
 
 function SubmitPage({ onSubmit, onCancel }: {
-  onSubmit: (t: Omit<Theory, 'id' | 'upvotes' | 'upvoted' | 'saved' | 'comments'>) => void
+  onSubmit: (t: Omit<Theory, 'id' | 'upvotes' | 'upvoted' | 'saved' | 'comments'> & { imageFile: File | null }) => Promise<void>
   onCancel: () => void
 }) {
   const [title, setTitle] = useState('')
@@ -205,23 +153,33 @@ function SubmitPage({ onSubmit, onCancel }: {
   const [category, setCategory] = useState<Exclude<Category, 'ALL'>>('GOVERNMENT')
   const [classified, setClassified] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return
+    setImageFile(file)
     const reader = new FileReader()
     reader.onload = ev => setImagePreview(ev.target?.result as string)
     reader.readAsDataURL(file)
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); if (!title.trim() || !excerpt.trim()) return
-    onSubmit({
-      title: title.trim(), excerpt: excerpt.trim(), category, classified,
-      author: 'Anonymous_Field', avatar: 'A',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      image: imagePreview || 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=600&h=380&fit=crop&auto=format',
-    })
+    setIsSubmitting(true)
+    setSubmitError('')
+    try {
+      await onSubmit({
+        title: title.trim(), excerpt: excerpt.trim(), category, classified,
+        author: '', avatar: '', date: '', image: imagePreview || '', imageFile,
+      })
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Unable to file this theory.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const inputBase = { backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text, fontFamily: "'Source Sans 3',sans-serif" }
@@ -288,7 +246,7 @@ function SubmitPage({ onSubmit, onCancel }: {
           {imagePreview ? (
             <div className="relative">
               <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded-sm opacity-80" />
-              <button type="button" onClick={() => { setImagePreview(null); if (fileRef.current) fileRef.current.value = '' }}
+              <button type="button" onClick={() => { setImagePreview(null); setImageFile(null); if (fileRef.current) fileRef.current.value = '' }}
                 style={{ backgroundColor: C.orange, fontFamily: "'Share Tech Mono',monospace" }}
                 className="absolute top-2 right-2 text-white text-[10px] px-2 py-1 tracking-widest rounded-sm">REMOVE</button>
             </div>
@@ -326,10 +284,11 @@ function SubmitPage({ onSubmit, onCancel }: {
           <span style={{ fontFamily: "'Share Tech Mono',monospace", color: C.muted }} className="text-xs tracking-widest uppercase">MARK AS CLASSIFIED</span>
         </label>
 
-        <button type="submit" disabled={!title.trim() || !excerpt.trim()}
+        {submitError && <p role="alert" className="text-sm" style={{ color: C.orange }}>{submitError}</p>}
+        <button type="submit" disabled={!title.trim() || !excerpt.trim() || isSubmitting}
           style={{ fontFamily: "'Share Tech Mono',monospace", backgroundColor: C.orange }}
           className="w-full py-4 text-white text-xs tracking-[0.2em] uppercase hover:brightness-110 transition-all disabled:opacity-30 rounded-sm">
-          FILE THEORY TO THE RECORD
+          {isSubmitting ? 'FILING...' : 'FILE THEORY TO THE RECORD'}
         </button>
       </form>
     </div>
@@ -340,7 +299,7 @@ function SubmitPage({ onSubmit, onCancel }: {
 
 function ProfilePage({ profile, theories, onSave }: {
   profile: Profile; theories: Theory[]
-  onSave: (p: Profile) => Promise<void>
+  onSave: (p: Profile) => Promise<Profile>
 }) {
   const [form, setForm] = useState(profile)
   const [saved, setSaved] = useState(false)
@@ -359,7 +318,8 @@ function ProfilePage({ profile, theories, onSave }: {
     setIsSaving(true)
     setSaveError('')
     try {
-      await onSave(form)
+      const savedProfile = await onSave(form)
+      setForm(savedProfile)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (error) {
@@ -655,31 +615,178 @@ function SavedScreen({ theories, onUpvote, onSave, onAddComment }: {
 
 // ─── app ─────────────────────────────────────────────────────────────────────
 
-function MainApp({ initialProfile, onSaveProfile }: { initialProfile: Profile; onSaveProfile: (profile: Profile) => Promise<void> }) {
-  const [theories, setTheories] = useState<Theory[]>(SEED)
+function formatTimeAgo(value: string) {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000))
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+function MainApp({ initialProfile, onSaveProfile, client, userId }: {
+  initialProfile: Profile
+  onSaveProfile: (profile: Profile) => Promise<void>
+  client: NonNullable<typeof supabase>
+  userId: string
+}) {
+  const [theories, setTheories] = useState<Theory[]>([])
   const [activeCategory, setActiveCategory] = useState<Category>('ALL')
   const [activeTab, setActiveTab] = useState<NavTab>('home')
   const [showSubmit, setShowSubmit] = useState(false)
   const [profile, setProfile] = useState<Profile>(initialProfile)
+  const [archiveError, setArchiveError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+
+  async function loadTheories() {
+    const [theoryResult, commentResult, profileResult, voteResult, savedResult] = await Promise.all([
+      client.from('theories').select('id, title, excerpt, category, image_url, classified, created_at, author_id').order('created_at', { ascending: false }),
+      client.from('comments').select('id, theory_id, author_id, text, created_at').order('created_at', { ascending: true }),
+      client.from('profiles').select('id, display_name, handle, avatar_url'),
+      client.from('theory_votes').select('theory_id, user_id'),
+      client.from('saved_theories').select('theory_id, user_id').eq('user_id', userId),
+    ])
+    const queryError = theoryResult.error || commentResult.error || profileResult.error || voteResult.error || savedResult.error
+    if (queryError) throw queryError
+
+    const profiles = new Map((profileResult.data || []).map(row => [row.id, row]))
+    const commentsByTheory = new Map<number, Comment[]>()
+    for (const row of commentResult.data || []) {
+      const author = profiles.get(row.author_id)
+      const comments = commentsByTheory.get(row.theory_id) || []
+      comments.push({
+        id: row.id,
+        author: author?.handle || author?.display_name || 'Anonymous',
+        avatar: author?.avatar_url || (author?.display_name || 'A')[0].toUpperCase(),
+        text: row.text,
+        time: formatTimeAgo(row.created_at),
+      })
+      commentsByTheory.set(row.theory_id, comments)
+    }
+    const votesByTheory = new Map<number, { count: number; mine: boolean }>()
+    for (const row of voteResult.data || []) {
+      const votes = votesByTheory.get(row.theory_id) || { count: 0, mine: false }
+      votes.count += 1
+      votes.mine ||= row.user_id === userId
+      votesByTheory.set(row.theory_id, votes)
+    }
+    const savedIds = new Set((savedResult.data || []).map(row => row.theory_id))
+    setTheories((theoryResult.data || []).map(row => {
+      const author = profiles.get(row.author_id)
+      const votes = votesByTheory.get(row.id) || { count: 0, mine: false }
+      return {
+        id: row.id,
+        title: row.title,
+        excerpt: row.excerpt,
+        category: row.category as Exclude<Category, 'ALL'>,
+        author: author?.handle || author?.display_name || 'Anonymous',
+        avatar: author?.avatar_url || (author?.display_name || 'A')[0].toUpperCase(),
+        date: new Date(row.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        image: row.image_url || '',
+        comments: commentsByTheory.get(row.id) || [],
+        upvotes: votes.count,
+        upvoted: votes.mine,
+        saved: savedIds.has(row.id),
+        classified: row.classified,
+      }
+    }))
+  }
+
+  useEffect(() => {
+    let active = true
+    setIsLoading(true)
+    loadTheories()
+      .catch(error => { if (active) setArchiveError(error instanceof Error ? error.message : 'Unable to load the archive.') })
+      .finally(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
+  }, [client, userId])
 
   async function handleSaveProfile(nextProfile: Profile) {
-    await onSaveProfile(nextProfile)
-    setProfile(nextProfile)
+    try {
+      const savedProfile = await onSaveProfile(nextProfile)
+      setProfile(savedProfile)
+      setArchiveError('')
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : 'Unable to save your profile.')
+      throw error
+    }
   }
 
-  function handleUpvote(id: number) {
-    setTheories(prev => prev.map(t => t.id === id ? { ...t, upvoted: !t.upvoted, upvotes: t.upvoted ? t.upvotes - 1 : t.upvotes + 1 } : t))
+  async function handleUpvote(id: number) {
+    try {
+      const theory = theories.find(item => item.id === id)
+      if (!theory) return
+      const result = theory.upvoted
+        ? await client.from('theory_votes').delete().eq('theory_id', id).eq('user_id', userId)
+        : await client.from('theory_votes').insert({ theory_id: id, user_id: userId })
+      if (result.error) throw result.error
+      setTheories(prev => prev.map(item => item.id === id
+        ? { ...item, upvoted: !theory.upvoted, upvotes: item.upvotes + (theory.upvoted ? -1 : 1) }
+        : item))
+      setArchiveError('')
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : 'Unable to update your vote.')
+    }
   }
-  function handleSave(id: number) {
-    setTheories(prev => prev.map(t => t.id === id ? { ...t, saved: !t.saved } : t))
+  async function handleSave(id: number) {
+    try {
+      const theory = theories.find(item => item.id === id)
+      if (!theory) return
+      const result = theory.saved
+        ? await client.from('saved_theories').delete().eq('theory_id', id).eq('user_id', userId)
+        : await client.from('saved_theories').insert({ theory_id: id, user_id: userId })
+      if (result.error) throw result.error
+      setTheories(prev => prev.map(item => item.id === id ? { ...item, saved: !theory.saved } : item))
+      setArchiveError('')
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : 'Unable to update saved files.')
+    }
   }
-  function handleAddComment(id: number, text: string) {
-    setTheories(prev => prev.map(t => t.id === id ? {
-      ...t, comments: [...t.comments, { id: Date.now(), author: profile.handle || 'Anonymous_Field', avatar: profile.name?.[0]?.toUpperCase() || 'A', text, time: 'just now' }],
-    } : t))
+  async function handleAddComment(id: number, text: string) {
+    try {
+      const { data, error } = await client.from('comments')
+        .insert({ theory_id: id, author_id: userId, text })
+        .select('id, created_at').single()
+      if (error) throw error
+      setTheories(prev => prev.map(theory => theory.id === id ? {
+        ...theory,
+        comments: [...theory.comments, {
+          id: data.id,
+          author: profile.handle || profile.name || 'Anonymous',
+          avatar: profile.name?.[0]?.toUpperCase() || 'A',
+          text,
+          time: formatTimeAgo(data.created_at),
+        }],
+      } : theory))
+      setArchiveError('')
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : 'Unable to post your comment.')
+    }
   }
-  function handleSubmitTheory(data: Omit<Theory, 'id' | 'upvotes' | 'upvoted' | 'saved' | 'comments'>) {
-    setTheories(prev => [{ ...data, id: Date.now(), upvotes: 0, upvoted: false, saved: false, comments: [] }, ...prev])
+  async function handleSubmitTheory(data: Omit<Theory, 'id' | 'upvotes' | 'upvoted' | 'saved' | 'comments'> & { imageFile: File | null }) {
+    let imageUrl: string | null = null
+    let imagePath: string | null = null
+    if (data.imageFile) {
+      const extension = data.imageFile.type.split('/')[1] || 'img'
+      imagePath = `${userId}/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await client.storage.from('theory-images').upload(imagePath, data.imageFile)
+      if (uploadError) throw uploadError
+      imageUrl = client.storage.from('theory-images').getPublicUrl(imagePath).data.publicUrl
+    }
+    const { error } = await client.from('theories').insert({
+      author_id: userId,
+      title: data.title,
+      excerpt: data.excerpt,
+      category: data.category,
+      classified: data.classified,
+      image_url: imageUrl,
+    })
+    if (error) {
+      if (imagePath) await client.storage.from('theory-images').remove([imagePath])
+      throw error
+    }
+    await loadTheories()
     setShowSubmit(false)
     setActiveTab('home')
   }
@@ -746,7 +853,15 @@ function MainApp({ initialProfile, onSaveProfile }: { initialProfile: Profile; o
 
       {/* main content */}
       <main className="flex-1 overflow-y-auto" style={{ paddingBottom: '72px' }}>
-        {showSubmit ? (
+        {archiveError && (
+          <div role="alert" className="mx-4 mt-3 border px-3 py-2 text-sm" style={{ borderColor: C.orange, color: C.cream }}>
+            {archiveError}
+          </div>
+        )}
+        {isLoading ? (
+          <div className="py-20 text-center" style={{ color: C.muted, fontFamily: "'Share Tech Mono',monospace" }}>LOADING ARCHIVE...</div>
+        ) : (
+        showSubmit ? (
           <SubmitPage onSubmit={handleSubmitTheory} onCancel={() => setShowSubmit(false)} />
         ) : activeTab === 'home' ? (
           <HomeScreen theories={theories} onUpvote={handleUpvote} onSave={handleSave}
@@ -757,7 +872,8 @@ function MainApp({ initialProfile, onSaveProfile }: { initialProfile: Profile; o
           <SavedScreen theories={theories} onUpvote={handleUpvote} onSave={handleSave} onAddComment={handleAddComment} />
         ) : activeTab === 'profile' ? (
           <ProfilePage profile={profile} theories={theories} onSave={handleSaveProfile} />
-        ) : null}
+        ) : null
+        )}
       </main>
 
       {/* bottom nav */}
@@ -851,12 +967,24 @@ export default function App() {
     const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
-      options: { data: { display_name: name } },
+      options: {
+        data: { display_name: name },
+        emailRedirectTo: window.location.origin,
+      },
     })
     if (error) throw error
     if (!data.session || !data.user) return true
     await loadProfile(data.user.id, name)
     return false
+  }
+
+  async function handleSocialAuth(provider: Provider) {
+    if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    })
+    if (error) throw error
   }
 
   async function handleSignIn(email: string, password: string) {
@@ -891,13 +1019,27 @@ export default function App() {
   async function handleProfileSave(nextProfile: Profile) {
     if (!userId) throw new Error('Your session has expired. Please sign in again.')
     if (!supabaseClient) throw new Error('Supabase deployment settings are missing.')
+    let avatarUrl = nextProfile.avatar
+    if (nextProfile.avatar.startsWith('data:')) {
+      const avatarBlob = await (await fetch(nextProfile.avatar)).blob()
+      const extension = avatarBlob.type.split('/')[1] || 'img'
+      const path = `${userId}/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(path, avatarBlob, {
+        contentType: avatarBlob.type,
+      })
+      if (uploadError) throw uploadError
+      avatarUrl = supabaseClient.storage.from('avatars').getPublicUrl(path).data.publicUrl
+    }
     const { error } = await supabaseClient.from('profiles').update({
       display_name: nextProfile.name.trim() || null,
       handle: nextProfile.handle.trim().replace(/^@/, '') || null,
       bio: nextProfile.bio,
+      avatar_url: avatarUrl || null,
     }).eq('id', userId)
     if (error) throw error
-    setProfile(nextProfile)
+    const savedProfile = { ...nextProfile, avatar: avatarUrl }
+    setProfile(savedProfile)
+    return savedProfile
   }
 
   if (!supabaseClient) {
@@ -918,13 +1060,13 @@ export default function App() {
   }
 
   if (authScreen === 'signup')
-    return <SignUpPage onSignUp={handleSignUp} onSignIn={() => setAuthScreen('signin')} />
+    return <SignUpPage onSignUp={handleSignUp} onSocialSignUp={handleSocialAuth} onSignIn={() => setAuthScreen('signin')} />
   if (authScreen === 'signin')
-    return <SignInPage onSignIn={handleSignIn} onSignUp={() => setAuthScreen('signup')} onForgotPassword={() => setAuthScreen('forgot')} />
+    return <SignInPage onSignIn={handleSignIn} onSocialSignIn={handleSocialAuth} onSignUp={() => setAuthScreen('signup')} onForgotPassword={() => setAuthScreen('forgot')} />
   if (authScreen === 'forgot')
     return <ForgotPasswordPage onBack={() => setAuthScreen('signin')} onReset={handlePasswordReset} />
   if (authScreen === 'onboarding')
     return <OnboardingFlow onComplete={handleOnboardingComplete} />
 
-  return <MainApp initialProfile={profile} onSaveProfile={handleProfileSave} />
+  return <MainApp initialProfile={profile} onSaveProfile={handleProfileSave} client={supabaseClient} userId={userId!} />
 }
